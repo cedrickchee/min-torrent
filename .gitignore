@@ -1,0 +1,37 @@
+# Compiled object files, static and dynamic libs (shared objects)
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+bin/
+
+# Binaries, plugins, libs
+*.exe
+*.exe~
+
+# # Test binary, built with `go test -c`
+*.test
+*.tmp
+
+# Output of the go coverage tool
+*.out
+
+# Profiling
+*.prof
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment variables file
+.env
+
+# IDE or code editor artefacts
+.vscode/
