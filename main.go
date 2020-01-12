@@ -12,9 +12,9 @@ func main() {
 	checkError(err)
 	defer file.Close()
 
-	to, err := torrentfile.Open(file)
+	t, err := torrentfile.Open(file)
 	checkError(err)
-	to.Download()
+	t.Download()
 }
 
 func checkError(err error) {

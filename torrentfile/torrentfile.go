@@ -41,16 +41,16 @@ func Open(r io.Reader) (*Torrent, error) {
 	if err != nil {
 		return nil, err
 	}
-	to, err := bto.toTorrent()
+	t, err := bto.toTorrent()
 	if err != nil {
 		return nil, err
 	}
 
-	return to, nil
+	return t, nil
 }
 
 // Download downloads a torrent
-func (to *Torrent) Download() error {
+func (t *Torrent) Download() error {
 	peerID := make([]byte, 20)
 	_, err := rand.Read(peerID)
 	if err != nil {
@@ -59,7 +59,7 @@ func (to *Torrent) Download() error {
 
 	tracker := Tracker{
 		PeerID:  peerID,
-		Torrent: to,
+		Torrent: t,
 		Port:    port,
 	}
 	peers, err := tracker.getPeers()
@@ -104,7 +104,7 @@ func (bto *bencodeTorrent) toTorrent() (*Torrent, error) {
 		return nil, err
 	}
 
-	to := Torrent{
+	t := Torrent{
 		Name:        bto.Info.Name,
 		Announce:    bto.Announce,
 		InfoHash:    infoHash,
@@ -113,5 +113,5 @@ func (bto *bencodeTorrent) toTorrent() (*Torrent, error) {
 		Length:      bto.Info.Length,
 	}
 
-	return &to, nil
+	return &t, nil
 }
