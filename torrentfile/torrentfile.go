@@ -10,6 +10,7 @@ import (
 	"github.com/jackpal/bencode-go"
 )
 
+// Port to listen on
 const port = 6881
 
 // Torrent encodes the metadata from a .torrent file
@@ -57,12 +58,7 @@ func (t *Torrent) Download() error {
 		return err
 	}
 
-	tracker := Tracker{
-		PeerID:  peerID,
-		Torrent: t,
-		Port:    port,
-	}
-	peers, err := tracker.getPeers()
+	peers, err := t.getPeers(peerID, port)
 	fmt.Println(peers)
 	return nil
 }

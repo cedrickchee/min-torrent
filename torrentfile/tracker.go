@@ -11,27 +11,27 @@ import (
 	"github.com/jackpal/bencode-go"
 )
 
-// Tracker
-type Tracker struct {
-	PeerID  []byte
-	Torrent *Torrent
-	Port    uint16
-}
-
-// TrackerResponse
-type TrackerResponse struct {
-	Interval int    `bencode:"interval"`
-	Peers    string `bencode:"port"`
-}
-
-// Peer
+// Peer encodes information for connecting to a peer
 type Peer struct {
 	IP   net.IP
 	Port uint16
 }
 
-func (tr *Tracker) getPeers() ([]Peer, error) {
-	url, err := tr.buildTrackerURL()
+// Tracker
+// type Tracker struct {
+// 	PeerID  []byte
+// 	Torrent *Torrent
+// 	Port    uint16
+// }
+
+// TrackerResponse
+type bencodeTrackerResponse struct {
+	Interval int    `bencode:"interval"`
+	Peers    string `bencode:"port"`
+}
+
+func (t *Torrent) getPeers(peerID []byte, port uint16) ([]Peer, error) {
+	url, err := t.buildTrackerURL(peerID, port)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (tr *Tracker) getPeers() ([]Peer, error) {
 	}
 	defer resp.Body.Close()
 
-	trackerResp := TrackerResponse{}
+	trackerResp := bencodeTrackerResponse{}
 	err = bencode.Unmarshal(resp.Body, &trackerResp)
 	if err != nil {
 		return nil, err
@@ -56,20 +56,20 @@ func (tr *Tracker) getPeers() ([]Peer, error) {
 	return peers, nil
 }
 
-func (tr *Tracker) buildTrackerURL() (string, error) {
-	base, err := url.Parse(tr.Torrent.Announce)
+func (t *Torrent) buildTrackerURL(peerID []byte, port uint16) (string, error) {
+	base, err := url.Parse(t.Announce)
 	if err != nil {
 		return "", err
 	}
 
 	params := url.Values{
-		"info_hash":  []string{string(tr.Torrent.InfoHash)},
-		"peer_id":    []string{string(tr.PeerID)},
-		"port":       []string{strconv.Itoa(int(tr.Port))},
+		"info_hash":  []string{string(t.InfoHash)},
+		"peer_id":    []string{string(peerID)},
+		"port":       []string{strconv.Itoa(int(port))},
 		"uploaded":   []string{"0"},
 		"downloaded": []string{"0"},
 		"compact":    []string{"1"},
-		"left":       []string{strconv.Itoa(tr.Torrent.Length)},
+		"left":       []string{strconv.Itoa(t.Length)},
 	}
 	base.RawQuery = params.Encode()
 
