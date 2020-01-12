@@ -1,8 +1,14 @@
 package torrentfile
 
-import "io"
+import (
+	"bytes"
+	"crypto/rand"
+	"crypto/sha1"
+	"fmt"
+	"io"
 
-import "github.com/jackpal/bencode-go"
+	"github.com/jackpal/bencode-go"
+)
 
 const port = 6881
 
@@ -26,4 +32,32 @@ func Open(r io.Reader) (*Torrent, error) {
 		return nil, err
 	}
 	return &to, nil
+}
+
+// Download downloads a torrent
+func (to *Torrent) Download() error {
+	peerID := make([]byte, 20)
+	_, err := rand.Read(peerID)
+	if err != nil {
+		return err
+	}
+
+	tracker := Tracker{
+		PeerID:  peerID,
+		Torrent: to,
+		Port:    port,
+	}
+	peers, err := tracker.getPeers()
+	fmt.Println(peers)
+	return nil
+}
+
+func (i *Info) hash() ([]byte, error) {
+	var buf bytes.Buffer
+	err := bencode.Marshal(&buf, *i)
+	if err != nil {
+		return nil, err
+	}
+	hs := sha1.Sum(buf.Bytes())
+	return hs[:], nil
 }
