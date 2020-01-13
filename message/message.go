@@ -28,6 +28,11 @@ type Message struct {
 	Payload []byte
 }
 
+// A Bitfield represents the pieces that a peer has.
+// It's a data structure that peers use to efficiently encode which pieces
+// they are able to send us.
+type Bitfield []byte
+
 // Serialize serializes a message into a buffer of the form
 // <length prefix><message ID><payload>
 // Interprets `nil` as a keep-alive message
@@ -121,7 +126,7 @@ func FormatRequest(index, begin, length int) *Message {
 // ParsePiece parses a piece message and copies its payload into a buffer
 func ParsePiece(index int, buf []byte, msg *Message) (int, error) {
 	if msg.ID != MsgPiece {
-		return 0, fmt.Errorf("Expected ID %d, got ID %d", MsgPiece, msg.ID)
+		return 0, fmt.Errorf("Expected piece (ID %d), got ID %d", MsgPiece, msg.ID)
 	}
 	if len(msg.Payload) < 8 {
 		return 0, errors.New("Payload too short")
@@ -140,4 +145,16 @@ func ParsePiece(index int, buf []byte, msg *Message) (int, error) {
 	}
 	copy(buf[begin:], data)
 	return len(data), nil
+}
+
+// HasPiece tells if a Bitfield has a particular index
+func (b Bitfield) HasPiece(index int) bool {
+	// Bitfield looks like a byte array (grid).
+	// You can think of it like a coffee shop loyalty card. We start with
+	// a blank card of all 0, and flip bits to 1 to mark
+	// their positions as "stamped".
+	byteIndex := index / 8 // which row in grid
+	offset := index % 8    // which column in grid
+
+	return b[byteIndex]>>(7-offset)&1 > 0 // bits manipulation
 }

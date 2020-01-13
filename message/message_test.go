@@ -214,3 +214,11 @@ func TestParsePiece(t *testing.T) {
 		assert.Equal(t, test.outputN, n)
 	}
 }
+
+func TestHasPiece(t *testing.T) {
+	bf := Bitfield{0b01010100, 0b01010100}
+	output := []bool{false, true, false, true, false, true, false, false, false, true, false, true, false, true, false, false}
+	for i := 0; i < len(output); i++ {
+		assert.Equal(t, output[i], bf.HasPiece(i))
+	}
+}
