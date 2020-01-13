@@ -2,6 +2,7 @@ package message
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -115,4 +116,28 @@ func FormatRequest(index, begin, length int) *Message {
 		ID:      MsgRequest,
 		Payload: payload,
 	}
+}
+
+// ParsePiece parses a piece message and copies its payload into a buffer
+func ParsePiece(index int, buf []byte, msg *Message) (int, error) {
+	if msg.ID != MsgPiece {
+		return 0, fmt.Errorf("Expected ID %d, got ID %d", MsgPiece, msg.ID)
+	}
+	if len(msg.Payload) < 8 {
+		return 0, errors.New("Payload too short")
+	}
+	parsedIndex := int(binary.BigEndian.Uint32(msg.Payload[0:4]))
+	if parsedIndex != index {
+		return 0, fmt.Errorf("Expected index %d, got %d", index, parsedIndex)
+	}
+	begin := int(binary.BigEndian.Uint32(msg.Payload[4:8]))
+	if begin >= len(buf) {
+		return 0, fmt.Errorf("Begin offset too high. %d >= %d", begin, len(buf))
+	}
+	data := msg.Payload[8:]
+	if begin+len(data) > len(buf) {
+		return 0, fmt.Errorf("Data too long [%d] for offset %d with length %d", len(data), begin, len(buf))
+	}
+	copy(buf[begin:], data)
+	return len(data), nil
 }

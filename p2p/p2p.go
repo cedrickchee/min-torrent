@@ -2,7 +2,6 @@ package p2p
 
 import (
 	"crypto/sha1"
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math"
@@ -51,15 +50,23 @@ func (d *Downloader) Download() error {
 			return err
 		}
 
+		if msg.ID != message.MsgPiece {
+			fmt.Println(msg.String())
+		} else {
+			fmt.Println("Received", len(msg.Payload), "bytes")
+		}
+
 		switch msg.ID {
 		case message.MsgChoke:
 			choked = true
 		case message.MsgUnchoke:
 			choked = false
 		case message.MsgPiece:
-			begin := binary.BigEndian.Uint32(msg.Payload[4:8])
-			copy(buf[begin:], msg.Payload[8:])
-			i += (len(msg.Payload) - 8)
+			dataLen, err := message.ParsePiece(0, buf, msg)
+			if err != nil {
+				return err
+			}
+			i += dataLen
 		}
 
 		if !choked {
@@ -77,13 +84,15 @@ func (d *Downloader) Download() error {
 	}
 
 	s := sha1.Sum(buf)
-	fmt.Println("Buffer hash:", hex.EncodeToString(s[:]))
-	fmt.Println("Torrent file piece hash:", hex.EncodeToString(d.PieceHashes[0][:]))
+	fmt.Printf("Downloaded %d bytes.\n", len(buf))
+	fmt.Printf("Got SHA-1\t%s\n", hex.EncodeToString(s[:]))
+	fmt.Printf("Expected\t%s\n:", hex.EncodeToString(d.PieceHashes[0][:]))
 
 	return nil
 }
 
 func (p *Peer) connect(peerID [20]byte, infoHash [20]byte) (net.Conn, error) {
+	fmt.Println("Connecting...")
 	hostPort := net.JoinHostPort(p.IP.String(), strconv.Itoa(int(p.Port)))
 	conn, err := net.Dial("tcp", hostPort)
 	if err != nil {
