@@ -14,7 +14,8 @@ func main() {
 
 	t, err := torrentfile.Open(file)
 	checkError(err)
-	t.Download()
+	err = t.Download()
+	checkError(err)
 }
 
 func checkError(err error) {

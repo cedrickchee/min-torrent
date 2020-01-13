@@ -103,3 +103,16 @@ func (m *Message) String() string {
 
 	return fmt.Sprintf("%s\t[% x]", idName, m.Payload)
 }
+
+// FormatRequest formats the ID and payload for a request
+func FormatRequest(index, begin, length int) *Message {
+	payload := make([]byte, 12)
+	binary.BigEndian.PutUint32(payload[0:4], uint32(index))
+	binary.BigEndian.PutUint32(payload[4:8], uint32(begin))
+	binary.BigEndian.PutUint32(payload[8:12], uint32(length))
+
+	return &Message{
+		ID:      MsgRequest,
+		Payload: payload,
+	}
+}

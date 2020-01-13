@@ -69,15 +69,7 @@ func (d *Downloader) Download() error {
 			remain := pieceSize - i
 			length := int(math.Min(float64(16384), float64(pieceSize)))
 			length = int(math.Min(float64(remain), float64(length)))
-			payload := make([]byte, 12)
-			binary.BigEndian.PutUint32(payload[0:4], uint32(index))
-			binary.BigEndian.PutUint32(payload[4:8], uint32(begin))
-			binary.BigEndian.PutUint32(payload[8:12], uint32(length))
-			request := message.Message{
-				ID:      message.MsgRequest,
-				Payload: payload,
-			}
-			_, err := conn.Write(request.Serialize())
+			_, err := conn.Write(message.FormatRequest(index, begin, length).Serialize())
 			if err != nil {
 				return err
 			}
