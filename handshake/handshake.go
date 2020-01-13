@@ -38,8 +38,8 @@ func (h *Handshake) Serialize() []byte {
 	return buf
 }
 
-// ReadHandshake parses a message from a stream. Returns `nil` on keep-alive message
-func ReadHandshake(r io.Reader) (*Handshake, error) {
+// Read parses a message from a stream. Returns `nil` on keep-alive message
+func Read(r io.Reader) (*Handshake, error) {
 	// Do Serialize(), but backwards
 	lengthBuf := make([]byte, 1)
 	_, err := io.ReadFull(r, lengthBuf)

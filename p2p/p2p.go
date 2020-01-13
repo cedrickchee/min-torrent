@@ -113,7 +113,7 @@ func (d *Downloader) handshake(conn net.Conn) (*handshake.Handshake, error) {
 		return nil, err
 	}
 
-	res, err := handshake.ReadHandshake(conn)
+	res, err := handshake.Read(conn)
 	if err != nil {
 		return nil, err
 	}
