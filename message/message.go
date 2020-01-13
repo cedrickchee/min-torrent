@@ -156,5 +156,5 @@ func (b Bitfield) HasPiece(index int) bool {
 	byteIndex := index / 8 // which row in grid
 	offset := index % 8    // which column in grid
 
-	return b[byteIndex]>>(7-offset)&1 > 0 // bits manipulation
+	return b[byteIndex]>>(7-offset)&1 != 0 // bitwise manipulation
 }
