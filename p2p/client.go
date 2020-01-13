@@ -1,10 +1,11 @@
 package p2p
 
 import (
+	"bufio"
+	"encoding/binary"
 	"fmt"
 	"net"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/cedrickchee/torrn/handshake"
@@ -13,12 +14,13 @@ import (
 
 type client struct {
 	conn     net.Conn
+	reader   *bufio.Reader
 	bitfield message.Bitfield
-	Choked   bool
-	Mux      sync.Mutex
+	choked   bool
+	engaged  bool
 }
 
-func completeHandshake(conn net.Conn, infoHash, peerID [20]byte) (*handshake.Handshake, error) {
+func completeHandshake(conn net.Conn, r *bufio.Reader, infoHash, peerID [20]byte) (*handshake.Handshake, error) {
 	conn.SetDeadline(time.Now().Local().Add(3 * time.Second))
 	defer conn.SetDeadline(time.Time{}) // disable the deadline
 
@@ -28,18 +30,18 @@ func completeHandshake(conn net.Conn, infoHash, peerID [20]byte) (*handshake.Han
 		return nil, err
 	}
 
-	res, err := handshake.Read(conn)
+	res, err := handshake.Read(r)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func recvBitfield(conn net.Conn) (message.Bitfield, error) {
+func recvBitfield(conn net.Conn, r *bufio.Reader) (message.Bitfield, error) {
 	conn.SetDeadline(time.Now().Local().Add(3 * time.Second))
 	defer conn.SetDeadline(time.Time{}) // disable the deadline
 
-	msg, err := message.Read(conn)
+	msg, err := message.Read(r)
 	if err != nil {
 		return nil, err
 	}
@@ -58,29 +60,72 @@ func newClient(peer Peer, peerID, infoHash [20]byte) (*client, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Connected to:", hostPort)
+
+	reader := bufio.NewReader(conn)
 
 	// Handshake
-	h, err := completeHandshake(conn, infoHash, peerID)
+	_, err = completeHandshake(conn, reader, infoHash, peerID)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Handshake:", h)
 
 	// Get bitfield
-	bf, err := recvBitfield(conn)
+	bf, err := recvBitfield(conn, reader)
 	if err != nil {
 		return nil, err
 	}
 
 	return &client{
 		conn:     conn,
+		reader:   reader,
 		bitfield: bf,
-		Choked:   true,
-		Mux:      sync.Mutex{},
+		choked:   true,
+		engaged:  false,
 	}, nil
 }
 
 func (c *client) hasPiece(index int) bool {
 	return c.bitfield.HasPiece(index)
+}
+
+func (c *client) unchoke() error {
+	msg := message.Message{ID: message.MsgUnchoke}
+	_, err := c.conn.Write(msg.Serialize())
+	return err
+}
+
+func (c *client) interested() error {
+	msg := message.Message{ID: message.MsgInterested}
+	_, err := c.conn.Write(msg.Serialize())
+	return err
+}
+
+func (c *client) hasNext() bool {
+	fmt.Println(c.reader.Buffered() > 0)
+	return c.reader.Buffered() > 0
+}
+
+func (c *client) read() (*message.Message, error) {
+	msg, err := message.Read(c.reader)
+	return msg, err
+}
+
+func (c *client) request(index, begin, length int) error {
+	req := message.FormatRequest(index, begin, length)
+	_, err := c.conn.Write(req.Serialize())
+	return err
+}
+
+func (c *client) have(index int) error {
+	pl := make([]byte, 4)
+	binary.BigEndian.PutUint32(pl, uint32(index))
+	msg := message.Message{ID: message.MsgHave, Payload: pl}
+	_, err := c.conn.Write(msg.Serialize())
+	return err
+}
+
+func (c *client) notInterested() error {
+	msg := message.Message{ID: message.MsgNotInterested}
+	_, err := c.conn.Write(msg.Serialize())
+	return err
 }

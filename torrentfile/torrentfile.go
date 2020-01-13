@@ -52,12 +52,12 @@ func Open(r io.Reader) (*Torrent, error) {
 }
 
 // Download downloads a torrent
-func (t *Torrent) Download() error {
+func (t *Torrent) Download() ([]byte, error) {
 	// A PeerID is a 20 byte unique identifier presented to trackers and peers
 	var peerID [20]byte
 	_, err := rand.Read(peerID[:])
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	peers, err := t.getPeers(peerID, port)
@@ -69,8 +69,11 @@ func (t *Torrent) Download() error {
 		PieceHashes: t.PieceHashes,
 		Length:      t.Length,
 	}
-	err = downloader.Download()
-	return err
+	buf, err := downloader.Download()
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
 }
 
 func (i *bencodeInfo) hash() ([20]byte, error) {

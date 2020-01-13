@@ -8,13 +8,22 @@ import (
 )
 
 func main() {
-	file, err := os.Open(os.Args[1])
-	checkError(err)
-	defer file.Close()
+	inPath := os.Args[1]
+	outPath := os.Args[2]
 
-	t, err := torrentfile.Open(file)
+	inFile, err := os.Open(inPath)
 	checkError(err)
-	err = t.Download()
+	defer inFile.Close()
+
+	t, err := torrentfile.Open(inFile)
+	checkError(err)
+	buf, err := t.Download()
+	checkError(err)
+
+	outFile, err := os.Create(outPath)
+	checkError(err)
+	defer outFile.Close()
+	_, err = outFile.Write(buf)
 	checkError(err)
 }
 
