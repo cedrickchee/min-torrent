@@ -34,7 +34,7 @@ func TestRead(t *testing.T) {
 		output *Message
 		fails  bool
 	}{
-		"parse normal message intro struct": {
+		"parse normal message into struct": {
 			input:  []byte{0, 0, 0, 5, 4, 1, 2, 3, 4},
 			output: &Message{ID: MsgHave, Payload: []byte{1, 2, 3, 4}},
 			fails:  false,
