@@ -3,15 +3,13 @@ package handshake
 import (
 	"errors"
 	"io"
-
-	"github.com/cedrickchee/torrn/torrentfile"
 )
 
 // A Handshake is a sequence of bytes a peer uses to identify itself
 type Handshake struct {
-	Pstr     string             // the protocol identifier
-	InfoHash [20]byte           // which file we want
-	PeerID   torrentfile.PeerID // made up ID to identify ourselves
+	Pstr     string   // the protocol identifier
+	InfoHash [20]byte // which file we want
+	PeerID   [20]byte // made up ID to identify ourselves
 }
 
 // Serialize serializes the handshake to a buffer
@@ -61,8 +59,7 @@ func ReadHandshake(r io.Reader) (*Handshake, error) {
 		return nil, err
 	}
 
-	var infoHash [20]byte
-	var peerID torrentfile.PeerID
+	var infoHash, peerID [20]byte
 
 	copy(infoHash[:], handshakeBuf[pstrLen+8:pstrLen+8+20])
 	copy(peerID[:], handshakeBuf[pstrLen+8+20:])

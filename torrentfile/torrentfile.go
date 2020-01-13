@@ -13,9 +13,6 @@ import (
 // Port to listen on
 const port = 6881
 
-// A PeerID is a 20 byte unique identifier presented to trackers and peers
-type PeerID [20]byte
-
 // Torrent encodes the metadata from a .torrent file
 type Torrent struct {
 	Name        string
@@ -55,7 +52,8 @@ func Open(r io.Reader) (*Torrent, error) {
 
 // Download downloads a torrent
 func (t *Torrent) Download() error {
-	peerID := PeerID{}
+	// A PeerID is a 20 byte unique identifier presented to trackers and peers
+	var peerID [20]byte
 	_, err := rand.Read(peerID[:])
 	if err != nil {
 		return err
