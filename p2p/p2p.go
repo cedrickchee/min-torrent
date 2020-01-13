@@ -29,11 +29,11 @@ type Downloader struct {
 
 func (d *Downloader) Download() error {
 	conn, err := d.Peers[0].connect(d.PeerID, d.InfoHash)
-	defer conn.Close()
 	if err != nil {
 		fmt.Println("Error", err)
 		return err
 	}
+	defer conn.Close()
 	h, err := d.handshake(conn)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (d *Downloader) Download() error {
 	s := sha1.Sum(buf)
 	fmt.Printf("Downloaded %d bytes.\n", len(buf))
 	fmt.Printf("Got SHA-1\t%s\n", hex.EncodeToString(s[:]))
-	fmt.Printf("Expected\t%s\n:", hex.EncodeToString(d.PieceHashes[0][:]))
+	fmt.Printf("Expected\t%s\n", hex.EncodeToString(d.PieceHashes[0][:]))
 
 	return nil
 }
