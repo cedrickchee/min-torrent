@@ -3,10 +3,7 @@ package p2p
 import (
 	"fmt"
 	"net"
-	"strconv"
-	"time"
-
-	"github.com/cedrickchee/torrn/handshake"
+	"sync"
 )
 
 // Peer encodes connection information for connecting to a peer
@@ -24,76 +21,67 @@ type Download struct {
 	Length      int
 }
 
-type peerState struct {
-	peer *Peer
-	conn net.Conn
+type pieceWork struct {
+	index int
+	hash  [20]byte
 }
 
 type swarm struct {
-	peerStates []*peerState
+	clients []*client
+	queue   chan *pieceWork
+	mux     sync.Mutex
 }
 
-func (p *Peer) connect(peerID [20]byte, infoHash [20]byte) (net.Conn, error) {
-	fmt.Println("Connecting...")
-	hostPort := net.JoinHostPort(p.IP.String(), strconv.Itoa(int(p.Port)))
-	conn, err := net.DialTimeout("tcp", hostPort, 3*time.Second)
-	if err != nil {
-		return nil, err
+// Download downloads a torrent
+func (d *Download) Download() error {
+	clients := d.initClients()
+	if len(clients) == 0 {
+		return fmt.Errorf("Could not connect to any of %d clients", len(d.Peers))
 	}
-	fmt.Println("Connected to:", hostPort)
-	return conn, nil
+
+	queue := make(chan *pieceWork, len(d.PieceHashes))
+	for index, hash := range d.PieceHashes {
+		queue <- &pieceWork{index, hash}
+	}
+	processQueue(clients, queue)
+
+	return nil
 }
 
-func (d *Download) handshake(conn net.Conn) (*handshake.Handshake, error) {
-	conn.SetDeadline(time.Now().Local().Add(3 * time.Second))
-	req := handshake.New(d.InfoHash, d.PeerID)
-	_, err := conn.Write(req.Serialize())
-	if err != nil {
-		return nil, err
+func (d *Download) initClients() []*client {
+	// Create clients in parallel
+	c := make(chan *client)
+	for _, p := range d.Peers {
+		go func(p Peer) {
+			client, err := newClient(p, d.PeerID, d.InfoHash)
+			if err != nil {
+				c <- nil
+			} else {
+				c <- client
+			}
+		}(p)
 	}
 
-	res, err := handshake.Read(conn)
-	if err != nil {
-		return nil, err
-	}
-	conn.SetDeadline(time.Time{}) // disable the deadline
-	return res, nil
-}
-
-func (d *Download) initPeer(p *Peer, c chan *peerState) {
-	conn, err := p.connect(d.PeerID, d.InfoHash)
-	if err != nil {
-		fmt.Println("Error", err)
-		c <- nil
-		return
-	}
-	h, err := d.handshake(conn)
-	if err != nil {
-		c <- nil
-		return
-	}
-	fmt.Println("Handshake:", h)
-	c <- &peerState{p, conn}
-}
-
-func (d *Download) startSwarm() *swarm {
-	c := make(chan *peerState)
-	for i := range d.Peers {
-		go d.initPeer(&d.Peers[i], c)
-	}
-
-	peerStates := make([]*peerState, 0)
+	clients := make([]*client, 0)
 	for range d.Peers {
-		ps := <-c
-		if ps != nil {
-			peerStates = append(peerStates, ps)
+		client := <-c
+		if client != nil {
+			clients = append(clients, client)
 		}
 	}
 
-	return &swarm{peerStates}
+	return clients
 }
 
-func (d *Download) Download() error {
-	d.startSwarm()
-	return nil
+func processQueue(clients []*client, queue chan *pieceWork) {
+	s := swarm{clients, queue, sync.Mutex{}}
+	for pw := range s.queue {
+		client := s.selectClient(pw.index)
+		fmt.Println(client.conn.RemoteAddr())
+		break
+	}
+}
+
+func (s *swarm) selectClient(index int) *client {
+	return s.clients[index]
 }
