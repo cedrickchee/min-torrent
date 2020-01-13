@@ -12,6 +12,14 @@ type Handshake struct {
 	PeerID   [20]byte // made up ID to identify ourselves
 }
 
+func New(infoHash, peerID [20]byte) *Handshake {
+	return &Handshake{
+		Pstr:     "BitTorrent protocol",
+		InfoHash: infoHash,
+		PeerID:   peerID,
+	}
+}
+
 // Serialize serializes the handshake to a buffer
 //
 // BitTorrent handshake is made up of five parts:

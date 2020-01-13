@@ -33,7 +33,7 @@ func (d *Downloader) Download() error {
 		fmt.Println("Error", err)
 		return err
 	}
-	defer conn.Close()
+
 	h, err := d.handshake(conn)
 	if err != nil {
 		return err
@@ -88,6 +88,8 @@ func (d *Downloader) Download() error {
 	fmt.Printf("Got SHA-1\t%s\n", hex.EncodeToString(s[:]))
 	fmt.Printf("Expected\t%s\n", hex.EncodeToString(d.PieceHashes[0][:]))
 
+	defer conn.Close()
+
 	return nil
 }
 
@@ -103,11 +105,7 @@ func (p *Peer) connect(peerID [20]byte, infoHash [20]byte) (net.Conn, error) {
 }
 
 func (d *Downloader) handshake(conn net.Conn) (*handshake.Handshake, error) {
-	req := handshake.Handshake{
-		Pstr:     "BitTorrent protocol",
-		InfoHash: d.InfoHash,
-		PeerID:   d.PeerID,
-	}
+	req := handshake.New(d.InfoHash, d.PeerID)
 	_, err := conn.Write(req.Serialize())
 	if err != nil {
 		return nil, err
