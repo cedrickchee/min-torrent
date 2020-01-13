@@ -6,7 +6,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"io"
-	"net"
 
 	"github.com/cedrickchee/torrn/p2p"
 	"github.com/jackpal/bencode-go"
@@ -61,18 +60,19 @@ func (t *Torrent) Download() error {
 		return err
 	}
 
-	// peers, err := t.getPeers(peerID, port)
-	// fmt.Println(peers)
-	peers := []p2p.Peer{
-		{
-			IP:   net.IP{127, 0, 0, 1},
-			Port: 51413,
-		},
-	}
+	peers, err := t.getPeers(peerID, port)
+	fmt.Println("Peers:", peers)
+	// peers := []p2p.Peer{
+	// 	{
+	// 		IP:   net.IP{127, 0, 0, 1},
+	// 		Port: 51413,
+	// 	},
+	// }
 	downloader := p2p.Downloader{
 		Peers:       peers,
+		PeerID:      peerID,
 		InfoHash:    t.InfoHash,
-		PieceLength: t.PieceLength,
+		PieceHashes: t.PieceHashes,
 		Length:      t.Length,
 	}
 	err = downloader.Download()
