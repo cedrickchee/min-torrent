@@ -41,7 +41,7 @@ func TestParsePeers(t *testing.T) {
 }
 
 func TestBuildTrackerURL(t *testing.T) {
-	to := Torrent{
+	to := TorrentFile{
 		Name:     "debian-10.2.0-amd64-netinst.iso",
 		Announce: "http://bttracker.debian.org:6969/announce",
 		InfoHash: [20]byte{216, 247, 57, 206, 195, 40, 149, 108, 204, 91, 191, 31, 134, 217, 253, 207, 219, 168, 206, 182},
