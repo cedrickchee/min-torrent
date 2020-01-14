@@ -12,7 +12,7 @@ import (
 )
 
 const maxBlockSize = 32768
-const maxBacklog = 10
+const maxBacklog = 5
 
 // Peer encodes connection information for connecting to a peer
 type Peer struct {
@@ -158,7 +158,7 @@ func attemptDownloadPiece(c *client, pw *pieceWork) ([]byte, error) {
 					// Last block might be shorter than the typical block
 					blockSize = pieceLength - requested
 				}
-				fmt.Println("Request", pw.index)
+				log.Println("Requesting", pw.index, requested, blockSize)
 				c.request(pw.index, requested, blockSize)
 				state.backlog++
 				requested += blockSize
@@ -179,11 +179,9 @@ func readMessage(state *downloadState) error {
 	if err != nil {
 		return err
 	}
+	log.Println("Received message:", msg)
 	if msg == nil { // keep-alive
 		return nil
-	}
-	if msg.ID != message.MsgPiece {
-		log.Println(msg)
 	}
 	switch msg.ID {
 	case message.MsgUnchoke:
