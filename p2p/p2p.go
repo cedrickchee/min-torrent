@@ -159,7 +159,6 @@ func attemptDownloadPiece(c *client, pw *pieceWork) ([]byte, error) {
 					// Last block might be shorter than the typical block
 					blockSize = pieceLength - state.requested
 				}
-				// log.Println("Requesting", pw.index, requested, blockSize)
 				c.request(pw.index, state.requested, blockSize)
 				state.backlog++
 				state.requested += blockSize
@@ -180,9 +179,6 @@ func readMessage(state *downloadState) error {
 	if err != nil {
 		return err
 	}
-
-	// log.Println("Received message:", msg)
-
 	if msg == nil { // keep-alive
 		return nil
 	}

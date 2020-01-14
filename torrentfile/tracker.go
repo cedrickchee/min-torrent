@@ -12,13 +12,6 @@ import (
 	"github.com/jackpal/bencode-go"
 )
 
-// Tracker
-// type Tracker struct {
-// 	PeerID  []byte
-// 	Torrent *Torrent
-// 	Port    uint16
-// }
-
 // TrackerResponse
 type bencodeTrackerResponse struct {
 	Interval int    `bencode:"interval"`
