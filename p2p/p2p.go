@@ -90,7 +90,7 @@ func (d *Download) processQueue(clients []*client, queue chan *pieceWork) []byte
 		mux:     sync.Mutex{},
 	}
 
-	numWorkers := len(s.clients) / 2
+	numWorkers := (len(s.clients) + 1) / 2
 	log.Printf("Spawning %d workers\n", numWorkers)
 	wg := sync.WaitGroup{}
 	wg.Add(numWorkers)
@@ -174,40 +174,46 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 	buf := make([]byte, pieceLength)
 	c.unchoke()
 	c.interested()
-	offset := 0
-	for c.hasNext() {
-		msg, err := c.read() // this call blocks
-		if err != nil {
-			return nil, err
-		}
-		if msg == nil { // keep-alive
-			continue
-		}
-		if msg.ID != message.MsgPiece {
-			fmt.Println(msg)
-		}
-		switch msg.ID {
-		case message.MsgUnchoke:
-			c.choked = false
-		case message.MsgChoke:
-			c.choked = true
-		case message.MsgPiece:
-			n, err := message.ParsePiece(pw.index, buf, msg)
+	downloaded := 0
+	requested := 0
+	for downloaded < pieceLength {
+		for c.hasNext() {
+			msg, err := c.read() // this call blocks
 			if err != nil {
 				return nil, err
 			}
-			offset += n
-		}
-	}
-
-	for offset < pieceLength {
-		if !c.choked {
-			blockSize := maxBlockSize
-			if pieceLength-offset < blockSize {
-				// Last block might be shorter than the typical block
-				blockSize = pieceLength - offset
+			if msg == nil { // keep-alive
+				continue
 			}
-			c.request(pw.index, offset, blockSize)
+			if msg.ID != message.MsgPiece {
+				fmt.Println(msg)
+			}
+			switch msg.ID {
+			case message.MsgUnchoke:
+				c.choked = false
+			case message.MsgChoke:
+				c.choked = true
+			case message.MsgPiece:
+				n, err := message.ParsePiece(pw.index, buf, msg)
+				if err != nil {
+					return nil, err
+				}
+				downloaded += n
+			}
+		}
+
+		n := 5
+		if !c.choked && requested < pieceLength && requested-downloaded <= n+1 {
+			for i := 0; i < n; i++ {
+				blockSize := maxBlockSize
+				if pieceLength-requested < blockSize {
+					// Last block might be shorter than the typical block
+					blockSize = pieceLength - requested
+				}
+				// fmt.Println("Request")
+				c.request(pw.index, requested, blockSize)
+				requested += blockSize
+			}
 		}
 
 		msg, err := c.read() // this call blocks
@@ -233,7 +239,7 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			offset += n
+			downloaded += n
 		}
 	}
 
