@@ -1,6 +1,6 @@
 # LeechTorrent
 
-LeechTorrent is a CLI for downloading torrent. Its tiny footprint was designed for running on resource-constrained environments such as embedded devices and servers. The torrent client was implemented in Go.
+LeechTorrent is a CLI for downloading torrent. Its tiny footprint was designed for running on resource-constrained environments such as embedded devices and servers. The torrent client was implemented in Go programming language.
 
 Back in Dec 2019, I started this project to learn Go and systems programming.
 
@@ -30,3 +30,7 @@ leechtorrent <torrent_file_path.torrent> <output_file_path>
 # https://www.archlinux.org/download/
 leechtorrent archlinux-2020.01.01-x86_64.iso.torrent archlinux.iso
 ```
+
+## Running on embedded devices/microcontroller boards
+
+ Compile the program using [TinyGo](https://tinygo.org/) so you can run on several different microcontroller boards such as the Arduino Uno and the Rasberry Pi.
