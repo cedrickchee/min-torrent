@@ -12,6 +12,7 @@ import (
 )
 
 const maxBlockSize = 32768
+const queueSize = 5
 
 // Peer encodes connection information for connecting to a peer
 type Peer struct {
@@ -122,7 +123,7 @@ func (s *swarm) worker(d *Download, wg *sync.WaitGroup) {
 		s.mux.Lock()
 		c, err := s.selectClient(pw.index)
 		if err != nil {
-			fmt.Println("Error:", err)
+			// fmt.Println("Error:", err)
 			// Re-enqueue the piece to try again
 			s.queue <- pw
 			s.mux.Unlock()
@@ -136,7 +137,7 @@ func (s *swarm) worker(d *Download, wg *sync.WaitGroup) {
 		pieceBuf, err := downloadPiece(c, pw, pieceLength)
 		if err != nil {
 			// Re-enqueue the piece to try again
-			// log.Println(err)
+			log.Println(err)
 			s.removeClient(c)
 			s.queue <- pw
 		} else {
@@ -160,13 +161,10 @@ func (s *swarm) worker(d *Download, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func calculateBoundsForPiece(index, numPieces, length int) (int, int) {
+func calculateBoundsForPiece(index, numPieces, length int) (begin int, end int) {
 	pieceLength := length / numPieces
-	begin := index * pieceLength
-	end := begin + pieceLength
-	if end > length-1 {
-		end = length - 1
-	}
+	begin = index * pieceLength
+	end = begin + pieceLength
 	return begin, end
 }
 
@@ -208,9 +206,8 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 			}
 		}
 
-		n := 5
-		if !c.choked && requested < pieceLength && requested-downloaded <= n+1 {
-			for i := 0; i < n; i++ {
+		if !c.choked && requested < pieceLength && requested-downloaded <= queueSize+1 {
+			for i := 0; i < queueSize; i++ {
 				blockSize := maxBlockSize
 				if pieceLength-requested < blockSize {
 					// Last block might be shorter than the typical block
@@ -240,6 +237,12 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 			c.choked = true
 		case message.MsgUnchoke:
 			c.choked = false
+		case message.MsgHave:
+			index, err := message.ParseHave(msg)
+			if err != nil {
+				return nil, err
+			}
+			c.bitfield.SetPiece(index)
 		case message.MsgPiece:
 			n, err := message.ParsePiece(pw.index, buf, msg)
 			if err != nil {
@@ -275,6 +278,7 @@ func (s *swarm) removeClient(c *client) {
 	}
 	log.Printf("Removing client. %d clients remaining\n", len(s.clients))
 	s.mux.Lock()
+	c.conn.Close()
 	var i int
 	for i = 0; i < len(s.clients); i++ {
 		if s.clients[i] == c {
