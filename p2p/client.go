@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cedrickchee/torrn/bitfield"
 	"github.com/cedrickchee/torrn/handshake"
 	"github.com/cedrickchee/torrn/message"
 )
@@ -14,7 +15,7 @@ import (
 type client struct {
 	conn     net.Conn
 	reader   *bufio.Reader
-	bitfield message.Bitfield
+	bitfield bitfield.Bitfield
 	choked   bool
 }
 
@@ -35,7 +36,7 @@ func completeHandshake(conn net.Conn, r *bufio.Reader, infoHash, peerID [20]byte
 	return res, nil
 }
 
-func recvBitfield(conn net.Conn, r *bufio.Reader) (message.Bitfield, error) {
+func recvBitfield(conn net.Conn, r *bufio.Reader) (bitfield.Bitfield, error) {
 	conn.SetDeadline(time.Now().Local().Add(3 * time.Second))
 	defer conn.SetDeadline(time.Time{}) // disable the deadline
 
