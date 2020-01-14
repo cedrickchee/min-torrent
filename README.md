@@ -11,6 +11,7 @@ This BitTorrent client implemented the [original BitTorrent protocol spec](https
 **Features**
 
 - Supports `.torrent` files (no magnet links)
+- Supports HTTP trackers (no UDP trackers)
 - Leeches torrent (does not support uploading pieces)
 
 ## Download
@@ -31,6 +32,12 @@ leechtorrent <torrent_file_path.torrent> <output_file_path>
 leechtorrent archlinux-2020.01.01-x86_64.iso.torrent archlinux.iso
 ```
 
-## Running on embedded devices/microcontroller boards
+## Development
+
+### Running on embedded devices/microcontroller boards
 
  Compile the program using [TinyGo](https://tinygo.org/) so you can run on several different microcontroller boards such as the Arduino Uno and the Rasberry Pi.
+
+### Test Data
+
+Download test data from ... and copy into the `./torrentfile/test_data` directory before you run your test suite using `go test ./...`.
