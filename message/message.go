@@ -128,10 +128,10 @@ func FormatHave(index int) *Message {
 	return &Message{ID: MsgHave, Payload: payload}
 }
 
-// ParsePiece parses a piece message and copies its payload into a buffer
+// ParsePiece parses a PIECE message and copies its payload into a buffer
 func ParsePiece(index int, buf []byte, msg *Message) (int, error) {
 	if msg.ID != MsgPiece {
-		return 0, fmt.Errorf("Expected piece (ID %d), got ID %d", MsgPiece, msg.ID)
+		return 0, fmt.Errorf("Expected PIECE (ID %d), got ID %d", MsgPiece, msg.ID)
 	}
 	if len(msg.Payload) < 8 {
 		return 0, errors.New("Payload too short")
@@ -150,6 +150,18 @@ func ParsePiece(index int, buf []byte, msg *Message) (int, error) {
 	}
 	copy(buf[begin:], data)
 	return len(data), nil
+}
+
+// ParseHave parses a HAVE message
+func ParseHave(msg *Message) (int, error) {
+	if msg.ID != MsgHave {
+		return 0, fmt.Errorf("Expected HAVE (ID %d), got ID %d", MsgHave, msg.ID)
+	}
+	if len(msg.Payload) != 4 {
+		return 0, fmt.Errorf("Expected payload length 4, got length %d", len(msg.Payload))
+	}
+	index := int(binary.BigEndian.Uint32(msg.Payload))
+	return index, nil
 }
 
 // HasPiece tells if a Bitfield has a particular index

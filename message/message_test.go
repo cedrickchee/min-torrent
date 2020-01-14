@@ -225,6 +225,45 @@ func TestParsePiece(t *testing.T) {
 	}
 }
 
+func TestParseHave(t *testing.T) {
+	tests := map[string]struct {
+		input  *Message
+		output int
+		fails  bool
+	}{
+		"parse valid message": {
+			input:  &Message{ID: MsgHave, Payload: []byte{0x00, 0x00, 0x00, 0x04}},
+			output: 4,
+			fails:  false,
+		},
+		"wrong message type": {
+			input:  &Message{ID: MsgPiece, Payload: []byte{0x00, 0x00, 0x00, 0x04}},
+			output: 0,
+			fails:  true,
+		},
+		"payload too short": {
+			input:  &Message{ID: MsgHave, Payload: []byte{0x00, 0x00, 0x04}},
+			output: 0,
+			fails:  true,
+		},
+		"payload too long": {
+			input:  &Message{ID: MsgHave, Payload: []byte{0x00, 0x00, 0x00, 0x00, 0x04}},
+			output: 0,
+			fails:  true,
+		},
+	}
+
+	for _, test := range tests {
+		index, err := ParseHave(test.input)
+		if test.fails {
+			assert.NotNil(t, err)
+		} else {
+			assert.Nil(t, err)
+		}
+		assert.Equal(t, test.output, index)
+	}
+}
+
 func TestHasPiece(t *testing.T) {
 	bf := Bitfield{0b01010100, 0b01010100}
 	output := []bool{false, true, false, true, false, true, false, false, false, true, false, true, false, true, false, false}

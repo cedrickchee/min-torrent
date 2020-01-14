@@ -193,6 +193,12 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 				c.choked = false
 			case message.MsgChoke:
 				c.choked = true
+			case message.MsgHave:
+				index, err := message.ParseHave(msg)
+				if err != nil {
+					return nil, err
+				}
+				fmt.Println("MsgHave index:", index)
 			case message.MsgPiece:
 				n, err := message.ParsePiece(pw.index, buf, msg)
 				if err != nil {
