@@ -227,7 +227,7 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 			continue
 		}
 		if msg.ID != message.MsgPiece {
-			fmt.Println(msg.String())
+			fmt.Println(msg)
 		} else {
 			fmt.Println("Received", len(msg.Payload), "bytes")
 		}
