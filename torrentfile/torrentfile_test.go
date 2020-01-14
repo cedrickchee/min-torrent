@@ -16,7 +16,7 @@ var update = flag.Bool("update", false, "update .golden.json files")
 func TestToTorrentFile(t *testing.T) {
 	tests := map[string]struct {
 		input  *bencodeTorrent
-		output *TorrentFile
+		output TorrentFile
 		fails  bool
 	}{
 		"correct conversion": {
@@ -29,7 +29,7 @@ func TestToTorrentFile(t *testing.T) {
 					Pieces:      "1234567890abcdefghijabcdefghij1234567890",
 				},
 			},
-			output: &TorrentFile{
+			output: TorrentFile{
 				Name:     "debian-10.2.0-amd64-netinst.iso",
 				Announce: "http://bttracker.debian.org:6969/announce",
 				InfoHash: [20]byte{216, 247, 57, 206, 195, 40, 149, 108, 204, 91, 191, 31, 134, 217, 253, 207, 219, 168, 206, 182},
@@ -52,7 +52,7 @@ func TestToTorrentFile(t *testing.T) {
 					Pieces:      "1234567890abcdefghijabcdef", // Only 26 bytes
 				},
 			},
-			output: nil,
+			output: TorrentFile{},
 			fails:  true,
 		},
 	}
@@ -82,10 +82,10 @@ func TestOpen(t *testing.T) {
 		ioutil.WriteFile(goldenPath, serialized, 0644)
 	}
 
-	expected := &TorrentFile{}
+	expected := TorrentFile{}
 	golden, err := ioutil.ReadFile(goldenPath)
 	require.Nil(t, err)
-	err = json.Unmarshal(golden, expected)
+	err = json.Unmarshal(golden, &expected)
 	require.Nil(t, err)
 
 	assert.Equal(t, expected, torrent)
