@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestToTorrent(t *testing.T) {
+func TestToTorrentFile(t *testing.T) {
 	tests := map[string]struct {
 		input  *bencodeTorrent
 		output *TorrentFile
@@ -51,7 +51,7 @@ func TestToTorrent(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		to, err := test.input.toTorrent()
+		to, err := test.input.toTorrentFile()
 		if test.fails {
 			assert.NotNil(t, err)
 		} else {
