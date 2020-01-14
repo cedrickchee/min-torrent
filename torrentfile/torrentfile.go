@@ -59,6 +59,9 @@ func (t *TorrentFile) Download() ([]byte, error) {
 	log.Println("Connecting with tracker", t.Announce)
 
 	peers, err := t.getPeers(peerID, port)
+	if err != nil {
+		return nil, err
+	}
 
 	log.Printf("Found %d peers", len(peers))
 
