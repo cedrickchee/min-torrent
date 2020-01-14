@@ -12,7 +12,7 @@ import (
 )
 
 const maxBlockSize = 32768
-const maxBacklog = 3
+const maxBacklog = 5
 
 // Peer encodes connection information for connecting to a peer
 type Peer struct {
@@ -45,6 +45,7 @@ type downloadState struct {
 	client     *client
 	buf        []byte
 	downloaded int
+	requested  int
 	backlog    int
 }
 
@@ -130,11 +131,10 @@ func attemptDownloadPiece(c *client, pw *pieceWork) ([]byte, error) {
 		buf:    make([]byte, pieceLength),
 	}
 
-	requested := 0
 	for state.downloaded < pieceLength {
 		// Block and consume messages until not choked
 		if c.choked {
-			err := readMessage(&state)
+			err := readMessages(&state)
 			if err != nil {
 				return nil, err
 			}
@@ -143,32 +143,23 @@ func attemptDownloadPiece(c *client, pw *pieceWork) ([]byte, error) {
 		}
 
 		// Send requests until we have enough unfulfilled requests
-		if requested < pieceLength && state.backlog < maxBacklog {
+		if state.requested < pieceLength && state.backlog < maxBacklog {
 			for i := 0; i < maxBacklog; i++ {
 				blockSize := maxBlockSize
-				if pieceLength-requested < blockSize {
+				if pieceLength-state.requested < blockSize {
 					// Last block might be shorter than the typical block
-					blockSize = pieceLength - requested
+					blockSize = pieceLength - state.requested
 				}
 				// log.Println("Requesting", pw.index, requested, blockSize)
-				c.request(pw.index, requested, blockSize)
+				c.request(pw.index, state.requested, blockSize)
 				state.backlog++
-				requested += blockSize
+				state.requested += blockSize
 			}
 		}
 
-		// Block to read at least one message
-		err := readMessage(&state)
+		err := readMessages(&state)
 		if err != nil {
 			return nil, err
-		}
-
-		// Read the rest of the messages, if any
-		for c.hasNext() {
-			err := readMessage(&state)
-			if err != nil {
-				return nil, err
-			}
 		}
 	}
 	return state.buf, nil
@@ -179,7 +170,9 @@ func readMessage(state *downloadState) error {
 	if err != nil {
 		return err
 	}
+
 	// log.Println("Received message:", msg)
+
 	if msg == nil { // keep-alive
 		return nil
 	}
@@ -201,6 +194,20 @@ func readMessage(state *downloadState) error {
 		}
 		state.downloaded += n
 		state.backlog--
+	}
+	return nil
+}
+
+func readMessages(state *downloadState) error {
+	err := readMessage(state)
+	if err != nil {
+		return err
+	}
+	for state.client.hasNext() {
+		err := readMessage(state)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
