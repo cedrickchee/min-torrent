@@ -35,3 +35,6 @@ pids
 
 # IDE or code editor artefacts
 .vscode/
+
+# Test data
+test_data/
