@@ -11,8 +11,11 @@ import (
 	"github.com/cedrickchee/torrn/message"
 )
 
-const maxBlockSize = 32768
-const maxBacklog = 5
+// MaxBlockSize is the largest number of bytes a request can ask for
+const MaxBlockSize = 32768
+
+// MaxBacklog is the number of unfulfilled requests a client can have in its pipeline
+const MaxBacklog = 5
 
 // Peer encodes connection information for connecting to a peer
 type Peer struct {
@@ -143,9 +146,9 @@ func attemptDownloadPiece(c *client, pw *pieceWork) ([]byte, error) {
 		}
 
 		// Send requests until we have enough unfulfilled requests
-		if state.requested < pieceLength && state.backlog < maxBacklog {
-			for i := 0; i < maxBacklog; i++ {
-				blockSize := maxBlockSize
+		if state.requested < pieceLength && state.backlog < MaxBacklog {
+			for i := 0; i < MaxBacklog; i++ {
+				blockSize := MaxBlockSize
 				if pieceLength-state.requested < blockSize {
 					// Last block might be shorter than the typical block
 					blockSize = pieceLength - state.requested
