@@ -100,7 +100,7 @@ func (d *Download) processQueue(clients []*client, queue chan *pieceWork) []byte
 	}
 
 	wg.Wait()
-	return []byte{}
+	return s.buf
 }
 
 func (s *swarm) selectClient(index int) (*client, error) {
