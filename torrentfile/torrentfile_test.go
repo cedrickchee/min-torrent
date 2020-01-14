@@ -1,10 +1,17 @@
 package torrentfile
 
 import (
+	"encoding/json"
+	"flag"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+var update = flag.Bool("update", false, "update .golden.json files")
 
 func TestToTorrentFile(t *testing.T) {
 	tests := map[string]struct {
@@ -59,4 +66,27 @@ func TestToTorrentFile(t *testing.T) {
 		}
 		assert.Equal(t, test.output, to)
 	}
+}
+
+func TestOpen(t *testing.T) {
+	input, err := os.Open("test_data/in_our_time_2001_librivox_archive.torrent")
+	require.Nil(t, err)
+
+	torrent, err := Open(input)
+	require.Nil(t, err)
+
+	goldenPath := "test_data/in_our_time_2001_librivox_archive.torrent.golden.json"
+	if *update {
+		serialized, err := json.MarshalIndent(torrent, "", " ")
+		require.Nil(t, err)
+		ioutil.WriteFile(goldenPath, serialized, 0644)
+	}
+
+	expected := &TorrentFile{}
+	golden, err := ioutil.ReadFile(goldenPath)
+	require.Nil(t, err)
+	err = json.Unmarshal(golden, expected)
+	require.Nil(t, err)
+
+	assert.Equal(t, expected, torrent)
 }
