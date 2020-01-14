@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/cedrickchee/torrn/p2p"
 	"github.com/jackpal/bencode-go"
@@ -60,13 +61,19 @@ func (t *TorrentFile) Download() ([]byte, error) {
 		return nil, err
 	}
 
+	log.Println("Connecting with tracker", t.Announce)
+
 	peers, err := t.getPeers(peerID, port)
+
+	log.Printf("Found %d peers", len(peers))
+
 	torrent := p2p.Torrent{
 		Peers:       peers,
 		PeerID:      peerID,
 		InfoHash:    t.InfoHash,
 		PieceHashes: t.PieceHashes,
 		Length:      t.Length,
+		Name:        t.Name,
 	}
 	buf, err := torrent.Download()
 	if err != nil {

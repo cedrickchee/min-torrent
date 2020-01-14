@@ -31,6 +31,7 @@ type Torrent struct {
 	InfoHash    [20]byte
 	PieceHashes [][20]byte
 	Length      int
+	Name        string
 }
 
 type pieceWork struct {
@@ -55,6 +56,7 @@ type downloadState struct {
 
 // Download downloads a torrent
 func (t *Torrent) Download() ([]byte, error) {
+	log.Println("Starting download for", t.Name)
 	numPieces := len(t.PieceHashes)
 
 	// Init queues for workers to retrieve work and send results
@@ -81,7 +83,7 @@ func (t *Torrent) Download() ([]byte, error) {
 
 		percent := float64(donePieces) / float64(numPieces)
 		numWorkers := runtime.NumGoroutine() - 1 // subtract 1 for main thread
-		log.Printf("(%0.2f%%) Downloaded piece #%d with %d workers\n", percent, res.index, numWorkers)
+		log.Printf("(%0.2f%%) Downloaded piece #%d from %d peers\n", percent, res.index, numWorkers)
 	}
 	close(workQueue)
 
