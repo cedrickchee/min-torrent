@@ -11,19 +11,9 @@ func main() {
 	inPath := os.Args[1]
 	outPath := os.Args[2]
 
-	inFile, err := os.Open(inPath)
+	t, err := torrentfile.Open(inPath)
 	checkError(err)
-	defer inFile.Close()
-
-	t, err := torrentfile.Open(inFile)
-	checkError(err)
-	buf, err := t.Download()
-	checkError(err)
-
-	outFile, err := os.Create(outPath)
-	checkError(err)
-	defer outFile.Close()
-	_, err = outFile.Write(buf)
+	err = t.DownloadToFile(outPath)
 	checkError(err)
 }
 

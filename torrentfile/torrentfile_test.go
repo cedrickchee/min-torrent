@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -69,10 +68,7 @@ func TestToTorrentFile(t *testing.T) {
 }
 
 func TestOpen(t *testing.T) {
-	input, err := os.Open("test_data/in_our_time_2001_librivox_archive.torrent")
-	require.Nil(t, err)
-
-	torrent, err := Open(input)
+	torrent, err := Open("test_data/in_our_time_2001_librivox_archive.torrent")
 	require.Nil(t, err)
 
 	goldenPath := "test_data/in_our_time_2001_librivox_archive.torrent.golden.json"

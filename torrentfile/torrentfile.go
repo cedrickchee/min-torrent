@@ -5,8 +5,8 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"fmt"
-	"io"
 	"log"
+	"os"
 
 	"github.com/cedrickchee/torrn/p2p"
 	"github.com/jackpal/bencode-go"
@@ -38,29 +38,35 @@ type bencodeTorrent struct {
 }
 
 // Open parses a torrent file.
-func Open(r io.Reader) (TorrentFile, error) {
+func Open(path string) (TorrentFile, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return TorrentFile{}, err
+	}
+	defer file.Close()
+
 	bto := bencodeTorrent{}
-	err := bencode.Unmarshal(r, &bto)
+	err = bencode.Unmarshal(file, &bto)
 	if err != nil {
 		return TorrentFile{}, err
 	}
 	return bto.toTorrentFile()
 }
 
-// Download downloads a torrent
-func (t *TorrentFile) Download() ([]byte, error) {
+// DownloadToFile downloads a torrent and writes it to a file
+func (t *TorrentFile) DownloadToFile(path string) error {
 	// A PeerID is a 20 byte unique identifier presented to trackers and peers
 	var peerID [20]byte
 	_, err := rand.Read(peerID[:])
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	log.Println("Connecting with tracker", t.Announce)
 
 	peers, err := t.getPeers(peerID, port)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	log.Printf("Found %d peers", len(peers))
@@ -76,9 +82,19 @@ func (t *TorrentFile) Download() ([]byte, error) {
 	}
 	buf, err := torrent.Download()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return buf, nil
+
+	outFile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+	_, err = outFile.Write(buf)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (i *bencodeInfo) hash() ([20]byte, error) {
