@@ -10,6 +10,7 @@ import (
 	"github.com/cedrickchee/torrn/bitfield"
 	"github.com/cedrickchee/torrn/handshake"
 	"github.com/cedrickchee/torrn/message"
+	"github.com/cedrickchee/torrn/peers"
 )
 
 type client struct {
@@ -52,7 +53,7 @@ func recvBitfield(conn net.Conn, r *bufio.Reader) (bitfield.Bitfield, error) {
 	return msg.Payload, nil
 }
 
-func newClient(peer Peer, peerID, infoHash [20]byte) (*client, error) {
+func newClient(peer peers.Peer, peerID, infoHash [20]byte) (*client, error) {
 	// Connect
 	hostPort := net.JoinHostPort(peer.IP.String(), strconv.Itoa(int(peer.Port)))
 	conn, err := net.DialTimeout("tcp", hostPort, 3*time.Second)

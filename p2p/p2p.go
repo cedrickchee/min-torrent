@@ -5,11 +5,11 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"log"
-	"net"
 	"runtime"
 	"time"
 
 	"github.com/cedrickchee/torrn/message"
+	"github.com/cedrickchee/torrn/peers"
 )
 
 // MaxBlockSize is the largest number of bytes a request can ask for
@@ -18,15 +18,9 @@ const MaxBlockSize = 32768
 // MaxBacklog is the number of unfulfilled requests a client can have in its pipeline
 const MaxBacklog = 5
 
-// Peer encodes connection information for connecting to a peer
-type Peer struct {
-	IP   net.IP
-	Port uint16
-}
-
 // Torrent holds data required to download a torrent from a list of peers
 type Torrent struct {
-	Peers       []Peer
+	Peers       []peers.Peer
 	PeerID      [20]byte
 	InfoHash    [20]byte
 	PieceHashes [][20]byte
@@ -90,7 +84,7 @@ func (t *Torrent) Download() ([]byte, error) {
 	return buf, nil
 }
 
-func (t *Torrent) startDownloadWorker(peer Peer, workQueue chan *pieceWork, results chan *pieceResult) {
+func (t *Torrent) startDownloadWorker(peer peers.Peer, workQueue chan *pieceWork, results chan *pieceResult) {
 	c, err := newClient(peer, t.PeerID, t.InfoHash)
 	if err != nil {
 		log.Printf("Could not handshake with %s. Disconnecting\n", peer.IP)
