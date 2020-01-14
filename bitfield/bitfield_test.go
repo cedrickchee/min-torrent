@@ -22,17 +22,17 @@ func TestSetPiece(t *testing.T) {
 	}{
 		{
 			input:  Bitfield{0b01010100, 0b01010100},
-			index:  4,
+			index:  4, // v (set)
 			output: Bitfield{0b01011100, 0b01010100},
 		},
 		{
 			input:  Bitfield{0b01010100, 0b01010100},
-			index:  9,
+			index:  9, // v (noop)
 			output: Bitfield{0b01010100, 0b01010100},
 		},
 		{
 			input:  Bitfield{0b01010100, 0b01010100},
-			index:  15,
+			index:  15, // v (set)
 			output: Bitfield{0b01010100, 0b01010101},
 		},
 	}
