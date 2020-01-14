@@ -62,7 +62,7 @@ func (t *Torrent) Download() ([]byte, error) {
 
 	// Start workers
 	for _, peer := range t.Peers {
-		go t.downloadWorker(peer, workQueue, results)
+		go t.startDownloadWorker(peer, workQueue, results)
 	}
 
 	// Collect results into a buffer until full
@@ -82,7 +82,7 @@ func (t *Torrent) Download() ([]byte, error) {
 	return buf, nil
 }
 
-func (t *Torrent) downloadWorker(peer Peer, workQueue chan *pieceWork, results chan *pieceResult) {
+func (t *Torrent) startDownloadWorker(peer Peer, workQueue chan *pieceWork, results chan *pieceResult) {
 	c, err := newClient(peer, t.PeerID, t.InfoHash)
 	if err != nil {
 		log.Printf("Could not handshake with %s. Disconnecting\n", peer.IP)
