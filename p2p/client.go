@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"net"
 	"strconv"
@@ -33,6 +34,9 @@ func completeHandshake(conn net.Conn, r *bufio.Reader, infoHash, peerID [20]byte
 	res, err := handshake.Read(r)
 	if err != nil {
 		return nil, err
+	}
+	if !bytes.Equal(res.InfoHash[:], infoHash[:]) {
+		return nil, fmt.Errorf("Expected infohash %x but got %x", res.InfoHash, infoHash)
 	}
 	return res, nil
 }
