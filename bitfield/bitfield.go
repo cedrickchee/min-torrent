@@ -13,7 +13,9 @@ func (b Bitfield) HasPiece(index int) bool {
 	// their positions as "stamped".
 	byteIndex := index / 8 // which row in grid
 	offset := index % 8    // which column in grid
-
+	if byteIndex < 0 || byteIndex >= len(b) {
+		return false
+	}
 	return b[byteIndex]>>(7-offset)&1 != 0 // bitwise manipulation
 }
 
@@ -21,5 +23,10 @@ func (b Bitfield) HasPiece(index int) bool {
 func (b Bitfield) SetPiece(index int) {
 	byteIndex := index / 8
 	offset := index % 8
+
+	// Silently discard index that is out of range
+	if byteIndex < 0 || byteIndex >= len(b) {
+		return
+	}
 	b[byteIndex] |= 1 << (7 - offset)
 }
