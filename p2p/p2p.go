@@ -198,7 +198,7 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 				if err != nil {
 					return nil, err
 				}
-				fmt.Println("MsgHave index:", index)
+				c.bitfield.SetPiece(index)
 			case message.MsgPiece:
 				n, err := message.ParsePiece(pw.index, buf, msg)
 				if err != nil {
