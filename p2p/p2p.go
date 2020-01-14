@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"runtime"
+	"time"
 
 	"github.com/cedrickchee/torrn/message"
 )
@@ -134,6 +135,11 @@ func attemptDownloadPiece(c *client, pw *pieceWork) ([]byte, error) {
 		buf:    make([]byte, pieceLength),
 	}
 
+	// Setting a deadline helps get unresponsive peers unstuck.
+	// 30 seconds is more than enough time to download 16 Kb
+	c.conn.SetDeadline(time.Now().Add(30 * time.Second))
+	defer c.conn.SetDeadline(time.Time{})
+
 	for state.downloaded < pieceLength {
 		// Block and consume messages until not choked
 		if c.choked {
@@ -165,6 +171,7 @@ func attemptDownloadPiece(c *client, pw *pieceWork) ([]byte, error) {
 			return nil, err
 		}
 	}
+
 	return state.buf, nil
 }
 
