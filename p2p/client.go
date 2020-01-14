@@ -101,7 +101,6 @@ func (c *client) interested() error {
 }
 
 func (c *client) hasNext() bool {
-	fmt.Println(c.reader.Buffered() > 0)
 	return c.reader.Buffered() > 0
 }
 

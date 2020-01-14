@@ -122,6 +122,7 @@ func (s *swarm) worker(d *Download, wg *sync.WaitGroup) {
 		s.mux.Lock()
 		c, err := s.selectClient(pw.index)
 		if err != nil {
+			fmt.Println("Error:", err)
 			// Re-enqueue the piece to try again
 			s.queue <- pw
 			s.mux.Unlock()
@@ -135,7 +136,7 @@ func (s *swarm) worker(d *Download, wg *sync.WaitGroup) {
 		pieceBuf, err := downloadPiece(c, pw, pieceLength)
 		if err != nil {
 			// Re-enqueue the piece to try again
-			log.Println(err)
+			// log.Println(err)
 			s.removeClient(c)
 			s.queue <- pw
 		} else {
@@ -144,7 +145,7 @@ func (s *swarm) worker(d *Download, wg *sync.WaitGroup) {
 
 			s.mux.Lock()
 			s.piecesDone++
-			log.Printf("Downloaded piece %d (%d/%d) %0.2f%%\n", pw.index, s.piecesDone, len(d.PieceHashes), float64(s.piecesDone)/float64(len(d.PieceHashes)))
+			log.Printf("Downloaded piece %d (%d/%d) %0.2f%%\n", pw.index, s.piecesDone, len(d.PieceHashes), float64(s.piecesDone)/float64(len(d.PieceHashes))*100)
 			s.mux.Unlock()
 
 			if s.piecesDone == len(d.PieceHashes) {
@@ -182,12 +183,20 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 		if msg == nil { // keep-alive
 			continue
 		}
-		fmt.Println("CATCHING UP ON", msg)
+		if msg.ID != message.MsgPiece {
+			fmt.Println(msg)
+		}
 		switch msg.ID {
 		case message.MsgUnchoke:
 			c.choked = false
 		case message.MsgChoke:
 			c.choked = true
+		case message.MsgPiece:
+			n, err := message.ParsePiece(pw.index, buf, msg)
+			if err != nil {
+				return nil, err
+			}
+			offset += n
 		}
 	}
 
@@ -241,9 +250,6 @@ func downloadPiece(c *client, pw *pieceWork, pieceLength int) ([]byte, error) {
 
 func checkIntegrity(pw *pieceWork, buf []byte) error {
 	hash := sha1.Sum(buf)
-	// log.Printf("Downloaded %d bytes.\n", len(buf))
-	// log.Printf("Got SHA1\t%s\n", hex.EncodeToString(hash[:]))
-	// log.Printf("Expected\t%s\n", hex.EncodeToString(pw.hash[:]))
 
 	if !bytes.Equal(hash[:], pw.hash[:]) {
 		return fmt.Errorf("Index %d failed integrity check", pw.index)
@@ -252,6 +258,9 @@ func checkIntegrity(pw *pieceWork, buf []byte) error {
 }
 
 func (s *swarm) removeClient(c *client) {
+	if len(s.clients) == 1 {
+		panic("Removed last client")
+	}
 	log.Printf("Removing client. %d clients remaining\n", len(s.clients))
 	s.mux.Lock()
 	var i int
