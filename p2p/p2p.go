@@ -24,6 +24,7 @@ type Torrent struct {
 	PeerID      [20]byte
 	InfoHash    [20]byte
 	PieceHashes [][20]byte
+	PieceLength int
 	Length      int
 	Name        string
 }
@@ -57,7 +58,7 @@ func (t *Torrent) Download() ([]byte, error) {
 	workQueue := make(chan *pieceWork, numPieces)
 	results := make(chan *pieceResult, numPieces)
 	for index, hash := range t.PieceHashes {
-		length := t.Length / numPieces
+		length := t.calculatePieceSize(index)
 		workQueue <- &pieceWork{index, hash, length}
 	}
 
@@ -71,7 +72,7 @@ func (t *Torrent) Download() ([]byte, error) {
 	donePieces := 0
 	for donePieces < numPieces {
 		res := <-results
-		begin, end := calculateBoundsForPiece(res.index, numPieces, t.Length)
+		begin, end := t.calculateBoundsForPiece(res.index)
 		copy(buf[begin:end], res.buf)
 		donePieces++
 
@@ -210,11 +211,18 @@ func readMessages(state *downloadState) error {
 	return nil
 }
 
-func calculateBoundsForPiece(index, numPieces, length int) (begin int, end int) {
-	pieceLength := length / numPieces
-	begin = index * pieceLength
-	end = begin + pieceLength
+func (t *Torrent) calculateBoundsForPiece(index int) (begin int, end int) {
+	begin = index * t.PieceLength
+	end = begin + t.PieceLength
+	if end > t.Length {
+		end = t.Length
+	}
 	return begin, end
+}
+
+func (t *Torrent) calculatePieceSize(index int) int {
+	begin, end := t.calculateBoundsForPiece(index)
+	return end - begin
 }
 
 func checkIntegrity(pw *pieceWork, buf []byte) error {
