@@ -61,7 +61,6 @@ func (t *TorrentFile) Download() ([]byte, error) {
 	}
 
 	peers, err := t.getPeers(peerID, port)
-	fmt.Println("Peers:", peers)
 	torrent := p2p.Torrent{
 		Peers:       peers,
 		PeerID:      peerID,
