@@ -1,6 +1,6 @@
 # LeechTorrent
 
-LeechTorrent is a CLI for downloading torrent. Its tiny footprint was designed for running on resource-constrained environments such as embedded devices and servers. The torrent client was implemented in Go programming language.
+LeechTorrent is a simple CLI for downloading torrent. Its tiny footprint was designed for running on resource-constrained environments such as embedded devices and servers. The torrent client was implemented in Go programming language.
 
 Back in Dec 2019, I started this project to learn Go and systems programming.
 
@@ -14,15 +14,15 @@ This BitTorrent client implemented the [original BitTorrent protocol spec](https
 - Supports HTTP trackers (no UDP trackers)
 - Leeches torrent (does not support uploading pieces)
 
-## Download
+## Installation
 
 ```sh
 go get github.com/cedrickchee/leechtorrent
 ```
 
-_prebuild binaries are coming soon..._
+TODO: provide prebuild binaries (compiled downloads).
 
-## How to use
+## Basic usage
 
 ```sh
 leechtorrent <torrent_file_path.torrent> <output_file_path>
