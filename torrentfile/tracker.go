@@ -13,7 +13,7 @@ import (
 // TrackerResponse
 type bencodeTrackerResponse struct {
 	Interval int    `bencode:"interval"`
-	Peers    string `bencode:"port"`
+	Peers    string `bencode:"peers"`
 }
 
 func (t *TorrentFile) getPeers(peerID [20]byte, port uint16) ([]peers.Peer, error) {
@@ -35,12 +35,7 @@ func (t *TorrentFile) getPeers(peerID [20]byte, port uint16) ([]peers.Peer, erro
 		return nil, err
 	}
 
-	peers, err := peers.Unmarshal(trackerResp.Peers)
-	if err != nil {
-		return nil, err
-	}
-
-	return peers, nil
+	return peers.Unmarshal(trackerResp.Peers)
 }
 
 func (t *TorrentFile) buildTrackerURL(peerID [20]byte, port uint16) (string, error) {
