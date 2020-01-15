@@ -1,4 +1,4 @@
-package p2p
+package client
 
 import (
 	"bufio"
@@ -14,11 +14,11 @@ import (
 	"github.com/cedrickchee/torrn/peers"
 )
 
-type client struct {
-	conn     net.Conn
+type Client struct {
+	Conn     net.Conn
 	reader   *bufio.Reader
-	bitfield bitfield.Bitfield
-	choked   bool
+	Bitfield bitfield.Bitfield
+	Choked   bool
 }
 
 func completeHandshake(conn net.Conn, r *bufio.Reader, infoHash, peerID [20]byte) (*handshake.Handshake, error) {
@@ -57,7 +57,8 @@ func recvBitfield(conn net.Conn, r *bufio.Reader) (bitfield.Bitfield, error) {
 	return msg.Payload, nil
 }
 
-func newClient(peer peers.Peer, peerID, infoHash [20]byte) (*client, error) {
+// New connects with a peer, completes a handshake, and receives a handshake
+func New(peer peers.Peer, peerID, infoHash [20]byte) (*Client, error) {
 	// Connect
 	hostPort := net.JoinHostPort(peer.IP.String(), strconv.Itoa(int(peer.Port)))
 	conn, err := net.DialTimeout("tcp", hostPort, 3*time.Second)
@@ -81,53 +82,56 @@ func newClient(peer peers.Peer, peerID, infoHash [20]byte) (*client, error) {
 		return nil, err
 	}
 
-	return &client{
-		conn:     conn,
+	return &Client{
+		Conn:     conn,
 		reader:   reader,
-		bitfield: bf,
-		choked:   true,
+		Bitfield: bf,
+		Choked:   true,
 	}, nil
 }
 
-func (c *client) hasPiece(index int) bool {
-	return c.bitfield.HasPiece(index)
-}
-
-func (c *client) sendUnchoke() error {
-	msg := message.Message{ID: message.MsgUnchoke}
-	_, err := c.conn.Write(msg.Serialize())
-	return err
-}
-
-func (c *client) sendInterested() error {
-	msg := message.Message{ID: message.MsgInterested}
-	_, err := c.conn.Write(msg.Serialize())
-	return err
-}
-
-func (c *client) hasNext() bool {
+// HasNext returns true if there are unread messages from the peer
+func (c *Client) HasNext() bool {
 	return c.reader.Buffered() > 0
 }
 
-func (c *client) read() (*message.Message, error) {
+// Read reads and consumes a message from the connection
+func (c *Client) Read() (*message.Message, error) {
 	msg, err := message.Read(c.reader)
 	return msg, err
 }
 
-func (c *client) sendRequest(index, begin, length int) error {
+// SendRequest sends a Request message to the peer
+func (c *Client) SendRequest(index, begin, length int) error {
 	req := message.FormatRequest(index, begin, length)
-	_, err := c.conn.Write(req.Serialize())
+	_, err := c.Conn.Write(req.Serialize())
 	return err
 }
 
-func (c *client) sendHave(index int) error {
+// SendHave sends a Have message to the peer
+func (c *Client) SendHave(index int) error {
 	msg := message.FormatHave(index)
-	_, err := c.conn.Write(msg.Serialize())
+	_, err := c.Conn.Write(msg.Serialize())
 	return err
 }
 
-func (c *client) sendNotInterested() error {
+// SendInterested sends an Interested message to the peer
+func (c *Client) SendInterested() error {
+	msg := message.Message{ID: message.MsgInterested}
+	_, err := c.Conn.Write(msg.Serialize())
+	return err
+}
+
+// SendNotInterested sends a NotInterested message to the peer
+func (c *Client) SendNotInterested() error {
 	msg := message.Message{ID: message.MsgNotInterested}
-	_, err := c.conn.Write(msg.Serialize())
+	_, err := c.Conn.Write(msg.Serialize())
+	return err
+}
+
+// SendUnchoke sends an Unchoke message to the peer
+func (c *Client) SendUnchoke() error {
+	msg := message.Message{ID: message.MsgUnchoke}
+	_, err := c.Conn.Write(msg.Serialize())
 	return err
 }
