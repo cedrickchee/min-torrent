@@ -35,3 +35,6 @@ pids
 
 # IDE or code editor artefacts
 .vscode/
+
+# Development tools configs
+reflex.conf
