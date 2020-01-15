@@ -159,8 +159,7 @@ func attemptDownloadPiece(c *client.Client, pw *pieceWork) ([]byte, error) {
 			}
 		}
 
-		// Wait until we receive at least one message, and consume them
-		err := readMessages(&state)
+		err := state.readMessage()
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +168,7 @@ func attemptDownloadPiece(c *client.Client, pw *pieceWork) ([]byte, error) {
 	return state.buf, nil
 }
 
-func readMessage(state *downloadState) error {
+func (state *downloadState) readMessage() error {
 	msg, err := state.client.Read() // this call blocks
 	if err != nil {
 		return err
@@ -195,20 +194,6 @@ func readMessage(state *downloadState) error {
 		}
 		state.downloaded += n
 		state.backlog--
-	}
-	return nil
-}
-
-func readMessages(state *downloadState) error {
-	err := readMessage(state)
-	if err != nil {
-		return err
-	}
-	for state.client.HasNext() {
-		err := readMessage(state)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

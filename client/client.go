@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"net"
@@ -16,12 +15,11 @@ import (
 
 type Client struct {
 	Conn     net.Conn
-	reader   *bufio.Reader
 	Bitfield bitfield.Bitfield
 	Choked   bool
 }
 
-func completeHandshake(conn net.Conn, r *bufio.Reader, infoHash, peerID [20]byte) (*handshake.Handshake, error) {
+func completeHandshake(conn net.Conn, infoHash, peerID [20]byte) (*handshake.Handshake, error) {
 	conn.SetDeadline(time.Now().Add(3 * time.Second))
 	defer conn.SetDeadline(time.Time{}) // disable the deadline
 
@@ -31,7 +29,7 @@ func completeHandshake(conn net.Conn, r *bufio.Reader, infoHash, peerID [20]byte
 		return nil, err
 	}
 
-	res, err := handshake.Read(r)
+	res, err := handshake.Read(conn)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +39,11 @@ func completeHandshake(conn net.Conn, r *bufio.Reader, infoHash, peerID [20]byte
 	return res, nil
 }
 
-func recvBitfield(conn net.Conn, r *bufio.Reader) (bitfield.Bitfield, error) {
+func recvBitfield(conn net.Conn) (bitfield.Bitfield, error) {
 	conn.SetDeadline(time.Now().Add(3 * time.Second))
 	defer conn.SetDeadline(time.Time{}) // disable the deadline
 
-	msg, err := message.Read(r)
+	msg, err := message.Read(conn)
 	if err != nil {
 		return nil, err
 	}
@@ -66,17 +64,15 @@ func New(peer peers.Peer, peerID, infoHash [20]byte) (*Client, error) {
 		return nil, err
 	}
 
-	reader := bufio.NewReader(conn)
-
 	// Handshake
-	_, err = completeHandshake(conn, reader, infoHash, peerID)
+	_, err = completeHandshake(conn, infoHash, peerID)
 	if err != nil {
 		conn.Close()
 		return nil, err
 	}
 
 	// Get bitfield
-	bf, err := recvBitfield(conn, reader)
+	bf, err := recvBitfield(conn)
 	if err != nil {
 		conn.Close()
 		return nil, err
@@ -84,20 +80,14 @@ func New(peer peers.Peer, peerID, infoHash [20]byte) (*Client, error) {
 
 	return &Client{
 		Conn:     conn,
-		reader:   reader,
 		Bitfield: bf,
 		Choked:   true,
 	}, nil
 }
 
-// HasNext returns true if there are unread messages from the peer
-func (c *Client) HasNext() bool {
-	return c.reader.Buffered() > 0
-}
-
 // Read reads and consumes a message from the connection
 func (c *Client) Read() (*message.Message, error) {
-	msg, err := message.Read(c.reader)
+	msg, err := message.Read(c.Conn)
 	return msg, err
 }
 

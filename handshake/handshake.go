@@ -1,7 +1,6 @@
 package handshake
 
 import (
-	"bufio"
 	"errors"
 	"io"
 )
@@ -48,7 +47,7 @@ func (h *Handshake) Serialize() []byte {
 }
 
 // Read parses a handshake from a stream.
-func Read(r *bufio.Reader) (*Handshake, error) {
+func Read(r io.Reader) (*Handshake, error) {
 	// Do Serialize(), but backwards
 	lengthBuf := make([]byte, 1)
 	_, err := io.ReadFull(r, lengthBuf)
