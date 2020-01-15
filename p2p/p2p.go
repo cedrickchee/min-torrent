@@ -49,7 +49,8 @@ type downloadState struct {
 	backlog    int
 }
 
-// Download downloads a torrent
+// Download downloads a torrent.
+// This stores the entire file in memory.
 func (t *Torrent) Download() ([]byte, error) {
 	log.Println("Starting download for", t.Name)
 	numPieces := len(t.PieceHashes)
