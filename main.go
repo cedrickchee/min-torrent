@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/cedrickchee/torrn/torrentfile"
+	"github.com/cedrickchee/min-torrent/torrentfile"
 )
 
 func main() {

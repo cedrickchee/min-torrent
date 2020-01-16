@@ -4,9 +4,9 @@ import (
 	"net"
 	"testing"
 
-	"github.com/cedrickchee/torrn/bitfield"
-	"github.com/cedrickchee/torrn/handshake"
-	"github.com/cedrickchee/torrn/message"
+	"github.com/cedrickchee/min-torrent/bitfield"
+	"github.com/cedrickchee/min-torrent/handshake"
+	"github.com/cedrickchee/min-torrent/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

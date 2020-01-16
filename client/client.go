@@ -6,10 +6,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/cedrickchee/torrn/bitfield"
-	"github.com/cedrickchee/torrn/handshake"
-	"github.com/cedrickchee/torrn/message"
-	"github.com/cedrickchee/torrn/peers"
+	"github.com/cedrickchee/min-torrent/bitfield"
+	"github.com/cedrickchee/min-torrent/handshake"
+	"github.com/cedrickchee/min-torrent/message"
+	"github.com/cedrickchee/min-torrent/peers"
 )
 
 type Client struct {

@@ -1,4 +1,4 @@
-module github.com/cedrickchee/torrn
+module github.com/cedrickchee/min-torrent
 
 go 1.13
 

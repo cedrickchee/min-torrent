@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/cedrickchee/torrn/client"
-	"github.com/cedrickchee/torrn/message"
-	"github.com/cedrickchee/torrn/peers"
+	"github.com/cedrickchee/min-torrent/client"
+	"github.com/cedrickchee/min-torrent/message"
+	"github.com/cedrickchee/min-torrent/peers"
 )
 
 // MaxBlockSize is the largest number of bytes a request can ask for

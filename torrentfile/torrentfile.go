@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/cedrickchee/torrn/p2p"
+	"github.com/cedrickchee/min-torrent/p2p"
 	"github.com/jackpal/bencode-go"
 )
 
