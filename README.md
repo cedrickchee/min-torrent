@@ -4,7 +4,7 @@ MinTorrent is a minimalistic, zero dependency torrent client, written in Go (gol
 
 Demo of the CLI downloading torrent:
 
-![Demo](./docs/examples/demo.svg)
+![Demo](./docs/examples/download-archlinux-demo.gif)
 
 **BitTorrent protocol**
 
