@@ -35,13 +35,14 @@ func New(infoHash, peerID [20]byte) *Handshake {
 // \x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00\x86\xd4\xc8\x00\x24\xa4\x69\xbe\x4c\x50\xbc\x5a\x10\x2c\xf7\x17\x80\x31\x00\x74-TR2940-k8hj0wgej6ch
 func (h *Handshake) Serialize() []byte {
 	pstrLen := len(h.Pstr)
-	bufLen := 49 + pstrLen
-	buf := make([]byte, bufLen)
+	buf := make([]byte, 49+pstrLen)
 	buf[0] = byte(pstrLen)
-	copy(buf[1:], h.Pstr)
-	// Leave 8 reserved bytes
-	copy(buf[1+pstrLen+8:], h.InfoHash[:])
-	copy(buf[1+pstrLen+8+20:], h.PeerID[:])
+
+	idxCurr := 1
+	idxCurr += copy(buf[idxCurr:], h.Pstr)
+	idxCurr += copy(buf[idxCurr:], make([]byte, 8)) // Leave 8 reserved bytes
+	idxCurr += copy(buf[idxCurr:], h.InfoHash[:])
+	idxCurr += copy(buf[idxCurr:], h.PeerID[:])
 
 	return buf
 }
