@@ -39,7 +39,7 @@ func completeHandshake(conn net.Conn, infoHash, peerID [20]byte) (*handshake.Han
 }
 
 func recvBitfield(conn net.Conn) (bitfield.Bitfield, error) {
-	conn.SetDeadline(time.Now().Add(3 * time.Second))
+	conn.SetDeadline(time.Now().Add(5 * time.Second))
 	defer conn.SetDeadline(time.Time{}) // disable the deadline
 
 	msg, err := message.Read(conn)
@@ -54,7 +54,8 @@ func recvBitfield(conn net.Conn) (bitfield.Bitfield, error) {
 	return msg.Payload, nil
 }
 
-// New connects with a peer, completes a handshake, and receives a handshake
+// New connects with a peer, completes a handshake, and receives a handshake.
+// Returns an err if any of those fail.
 func New(peer peers.Peer, peerID, infoHash [20]byte) (*Client, error) {
 	// Connect
 	conn, err := net.DialTimeout("tcp", peer.String(), 3*time.Second)
