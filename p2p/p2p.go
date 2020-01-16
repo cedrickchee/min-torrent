@@ -14,7 +14,7 @@ import (
 )
 
 // MaxBlockSize is the largest number of bytes a request can ask for
-const MaxBlockSize = 32768
+const MaxBlockSize = 16384
 
 // MaxBacklog is the number of unfulfilled requests a client can have in its pipeline
 const MaxBacklog = 5
