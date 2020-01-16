@@ -58,7 +58,7 @@ func (t *Torrent) Download() ([]byte, error) {
 
 	// Init queues for workers to retrieve work and send results
 	workQueue := make(chan *pieceWork, numPieces)
-	results := make(chan *pieceResult, numPieces)
+	results := make(chan *pieceResult)
 	for index, hash := range t.PieceHashes {
 		length := t.calculatePieceSize(index)
 		workQueue <- &pieceWork{index, hash, length}
