@@ -35,7 +35,7 @@ func (t *TorrentFile) getPeers(peerID [20]byte, port uint16) ([]peers.Peer, erro
 		return nil, err
 	}
 
-	return peers.Unmarshal(trackerResp.Peers)
+	return peers.Unmarshal([]byte(trackerResp.Peers))
 }
 
 func (t *TorrentFile) buildTrackerURL(peerID [20]byte, port uint16) (string, error) {

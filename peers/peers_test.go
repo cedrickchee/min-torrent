@@ -13,7 +13,7 @@ func TestUnmarshal(t *testing.T) {
 		output []Peer
 		fails  bool
 	}{
-		"correctly parse peers": {
+		"correctly parses peers": {
 			input: string([]byte{127, 0, 0, 1, 0x00, 0x50, 1, 1, 1, 1, 0x01, 0xbb}),
 			output: []Peer{
 				{IP: net.IP{127, 0, 0, 1}, Port: 80},
@@ -29,7 +29,7 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		peers, err := Unmarshal(test.input)
+		peers, err := Unmarshal([]byte(test.input))
 		if test.fails {
 			assert.NotNil(t, err)
 		} else {
