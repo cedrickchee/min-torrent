@@ -142,20 +142,18 @@ func attemptDownloadPiece(c *client.Client, pw *pieceWork) ([]byte, error) {
 	for state.downloaded < pieceLength {
 		// If unchoked, send requests until we have enough unfulfilled requests
 		if !state.client.Choked {
-			if state.requested < pieceLength && state.backlog < MaxBacklog {
-				for i := 0; i < MaxBacklog; i++ {
-					blockSize := MaxBlockSize
-					if pieceLength-state.requested < blockSize {
-						// Last block might be shorter than the typical block
-						blockSize = pieceLength - state.requested
-					}
-					err := c.SendRequest(pw.index, state.requested, blockSize)
-					if err != nil {
-						return nil, err
-					}
-					state.backlog++
-					state.requested += blockSize
+			for state.requested < pieceLength && state.backlog < MaxBacklog {
+				blockSize := MaxBlockSize
+				if pieceLength-state.requested < blockSize {
+					// Last block might be shorter than the typical block
+					blockSize = pieceLength - state.requested
 				}
+				err := c.SendRequest(pw.index, state.requested, blockSize)
+				if err != nil {
+					return nil, err
+				}
+				state.backlog++
+				state.requested += blockSize
 			}
 		}
 
