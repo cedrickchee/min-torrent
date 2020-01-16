@@ -1,6 +1,6 @@
-# LeechTorrent
+# MinTorrent
 
-LeechTorrent is a simple CLI for downloading torrent. Its tiny footprint was designed for running on resource-constrained environments such as embedded devices and servers. The torrent client was implemented in Go programming language.
+MinTorrent is a minimalistic, zero dependency torrent client, written in Go (golang).
 
 **BitTorrent protocol**
 
@@ -8,14 +8,19 @@ This BitTorrent client implemented the [original BitTorrent protocol spec](https
 
 **Features**
 
-- Supports `.torrent` files (no magnet links)
-- Supports HTTP trackers (no UDP trackers)
-- Leeches torrent (does not support uploading pieces)
+- Simple, 'no-nonsense' torrent leeching (doesn't support seeding yet)
+- Supports `.torrent` files (doesn't support magnet links yet)
+- HTTP trackers (no UDP trackers)
+
+Also:
+- Single binary
+- Cross platform
+- Tiny runtime footprint — designed for running on servers and in the future, on resource-constrained environments such as embedded devices.
 
 ## Installation
 
 ```sh
-go get github.com/cedrickchee/leechtorrent
+go get github.com/cedrickchee/min-torrent
 ```
 
 TODO: provide prebuild binaries (compiled downloads).
@@ -23,11 +28,11 @@ TODO: provide prebuild binaries (compiled downloads).
 ## Basic usage
 
 ```sh
-leechtorrent <torrent_file_path.torrent> <output_file_path>
+min-torrent <torrent_file_path.torrent> <output_file_path>
 
 # Example: downloading Arch Linux ISO from
 # https://www.archlinux.org/download/
-leechtorrent archlinux-2020.01.01-x86_64.iso.torrent archlinux.iso
+min-torrent archlinux-2020.01.01-x86_64.iso.torrent archlinux.iso
 ```
 
 ## Development
@@ -37,6 +42,10 @@ leechtorrent archlinux-2020.01.01-x86_64.iso.torrent archlinux.iso
 That's the plan! However, this is still work-in-progress.
 
 I believe, if we compile the program using [TinyGo](https://tinygo.org/), we can run on several different microcontroller boards such as the Arduino Uno and the Rasberry Pi.
+
+## Limitations
+
+- No support for DHT, uTP, PEX and various extensions.
 
 ---
 
