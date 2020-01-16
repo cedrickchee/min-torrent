@@ -78,7 +78,7 @@ func (t *Torrent) Download() ([]byte, error) {
 		copy(buf[begin:end], res.buf)
 		donePieces++
 
-		percent := float64(donePieces) / float64(numPieces)
+		percent := float64(donePieces) / float64(numPieces) * 100
 		numWorkers := runtime.NumGoroutine() - 1 // subtract 1 for main thread
 		log.Printf("(%0.2f%%) Downloaded piece #%d from %d peers\n", percent, res.index, numWorkers)
 	}
