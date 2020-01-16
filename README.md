@@ -2,6 +2,10 @@
 
 MinTorrent is a minimalistic, zero dependency torrent client, written in Go (golang).
 
+Demo of the CLI downloading torrent:
+
+![Demo](./docs/examples/demo.svg)
+
 **BitTorrent protocol**
 
 This BitTorrent client implemented the [original BitTorrent protocol spec](https://www.bittorrent.org/beps/bep_0003.html) from 2001.
