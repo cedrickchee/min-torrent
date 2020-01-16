@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"net"
+	"strconv"
 )
 
 // Peer encodes connection information for connecting to a peer
@@ -28,4 +29,8 @@ func Unmarshal(peersBin string) ([]Peer, error) {
 	}
 
 	return peers, nil
+}
+
+func (p Peer) String() string {
+	return net.JoinHostPort(p.IP.String(), strconv.Itoa(int(p.Port)))
 }

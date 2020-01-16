@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net"
-	"strconv"
 	"time"
 
 	"github.com/cedrickchee/torrn/bitfield"
@@ -58,8 +57,7 @@ func recvBitfield(conn net.Conn) (bitfield.Bitfield, error) {
 // New connects with a peer, completes a handshake, and receives a handshake
 func New(peer peers.Peer, peerID, infoHash [20]byte) (*Client, error) {
 	// Connect
-	hostPort := net.JoinHostPort(peer.IP.String(), strconv.Itoa(int(peer.Port)))
-	conn, err := net.DialTimeout("tcp", hostPort, 3*time.Second)
+	conn, err := net.DialTimeout("tcp", peer.String(), 3*time.Second)
 	if err != nil {
 		return nil, err
 	}
