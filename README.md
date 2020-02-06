@@ -1,5 +1,7 @@
 # MinTorrent
 
+[![CircleCI](https://circleci.com/gh/cedrickchee/min-torrent.svg?style=svg)](https://circleci.com/gh/cedrickchee/min-torrent)
+
 MinTorrent is a minimalistic, zero dependency torrent client, written in Go (golang).
 
 Demo of the CLI downloading torrent:
